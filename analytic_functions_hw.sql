@@ -93,7 +93,7 @@ inner join violation v
     on i.inspection_id = v.inspection_id
 where e.first_name = 'Cecelia'
     and e.last_name = 'Glenn'
-order by est.license_no, est.risk_level
+order by i.inspection_date
 
 
 --6
@@ -106,7 +106,7 @@ select
     , v.fine
     , sum(fine) over (partition by facility_type) as facility_type_total
     , sum(fine) over (partition by est.license_no, est.risk_level) as risk_level_total
-    , sum(fine) over (partition by e.employee_id) as employee_running_total
+    , sum(fine) over (partition by e.employee_id order by inspection_date ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) as employee_running_total
 from employee e
 inner join inspection i
     on e.employee_id = i.employee_id
@@ -116,7 +116,7 @@ inner join violation v
     on i.inspection_id = v.inspection_id
 where e.first_name = 'Cecelia'
     and e.last_name = 'Glenn'
-order by est.license_no, est.risk_level
+order by i.inspection_date --, EMPLOYEE_RUNNING_TOTAL
 
 
 --7
@@ -130,7 +130,7 @@ select
     , sum(fine) over (partition by facility_type) as facility_type_total
     , sum(fine) over (partition by est.license_no, est.risk_level) as risk_level_total
     , sum(fine) over (partition by e.employee_id) as employee_running_total
-    , sum(v.fine) over(partition by e.employee_id order by inspection_date ROWS BETWEEN 9 PRECEDING AND CURRENT ROW) as trailing_ten_average
+    , round(sum(v.fine) over(partition by e.employee_id order by inspection_date ROWS BETWEEN 9 PRECEDING AND CURRENT ROW) / 10) as trailing_ten_average
 
 from employee e 
 inner join inspection i
@@ -141,7 +141,7 @@ inner join violation v
     on i.inspection_id = v.inspection_id
 where e.first_name = 'Cecelia'
     and e.last_name = 'Glenn'
-order by inspection_date
+order by i.inspection_date
 
 
 --8
